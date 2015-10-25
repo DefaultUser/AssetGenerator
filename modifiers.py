@@ -23,6 +23,14 @@ import helper
 class ArrayModifier(baseclasses.BaseAsset):
     def __init__(self, obj, count, offset, relative=False,
                  group="ArrayModifier"):
+        """
+        \brief Copy an object multiple times and place them with
+        a certain offset
+        \param obj Object that should be copied
+        \param count Number of copies
+        \param offset Offset between the copies
+        \param relative use relaitve or absolute offset
+        """
         super().__init__()
         self.obj = obj
         self.count = count

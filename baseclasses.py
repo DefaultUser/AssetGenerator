@@ -22,6 +22,10 @@ class BaseAsset(object):
         raise NotImplementedError("This is an abstract class")
 
     def save(self, path):
+        """
+        \brief Save the asset under a given name
+        \param path filename (may be relative)
+        """
         with open(path, "w") as f:
             self.write(f)
 
