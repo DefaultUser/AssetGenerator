@@ -38,6 +38,17 @@ class ArrayModifier(baseclasses.BaseAsset):
         self.relative = relative
         self.group = group
 
+    def __getitem__(self, key):
+        if type(key) != int:
+            raise IndexError("Only integers are supported")
+        obj = copy.deepcopy(self.obj)
+        if self.relative:
+            offset = self.offset*obj.size
+        else:
+            offset = self.offset
+        obj.center = self.obj.center + (key % self.count)*offset
+        return obj
+
     def write(self, f):
         if self.obj.isGroupable:
             context = helper.group
@@ -46,13 +57,6 @@ class ArrayModifier(baseclasses.BaseAsset):
             context = helper.worldspawn
             args = [f, ]
 
-        # Don't modify the original
-        obj = copy.deepcopy(self.obj)
         with context(*args):
             for i in range(self.count):
-                if self.relative:
-                    offset = self.offset*obj.size
-                else:
-                    offset = self.offset
-                obj.center = self.obj.center + i*offset
-                f.write(obj.data_as_string())
+                f.write(str(self[i]))

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+import helper
 
 
 class BaseAsset(object):
@@ -31,10 +32,29 @@ class BaseAsset(object):
 
 
 class BaseObject(object):
+    isGroupable = False
+
     def __init__(self, center, size):
         super().__init__()
         self.center = np.array(center, dtype=np.float)
         self.size = np.array(size, dtype=np.float)
 
-    def data_as_string(self):
+    def _str__(self):
         raise NotImplementedError("This is an abstract class")
+
+
+class Brush(BaseObject):
+    isGroupable = True
+
+    @property
+    def faces(self):
+        raise NotImplementedError("This is an abstract class")
+
+    def __str__(self):
+        data = ''
+        for face in self.faces:
+            data += helper.faceplane.format(P0=helper.point_to_str(face[0]),
+                                            P1=helper.point_to_str(face[1]),
+                                            P2=helper.point_to_str(face[2]),
+                                            tex=face[3])
+        return helper.brushdef.format(data=data)

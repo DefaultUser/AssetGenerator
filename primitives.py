@@ -15,13 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
+import numpy as np
 from helper import point_to_str
-from baseclasses import BaseObject
+import baseclasses
 
 
-class Cuboid(BaseObject):
-    isGroupable = True
-
+class Cuboid(baseclasses.Brush):
     def __init__(self, center, size, texture=None):
         """
         \brief Generate a cuboid
@@ -38,75 +37,29 @@ class Cuboid(BaseObject):
         else:
             self.texture = defaultdict(lambda: "common/caulk", texture)
 
-    def data_as_string(self):
+    @property
+    def verticies(self):
+        """
+        \brief Returns a list of all verticies, starting in the right bottom
+        corner of the front face, going clockwise and then the back face
+        """
         # TODO: rotation
-        data = '// brush\n{\nbrushDef\n{\n'
-        # plane 0 - top face
-        p0 = (self.center[0] + self.size[0]/2, self.center[1] + self.size[1]/2,
-              self.center[2] + self.size[2]/2)
-        p1 = (self.center[0] + self.size[0]/2, self.center[1] - self.size[1]/2,
-              self.center[2] + self.size[2]/2)
-        p2 = (self.center[0] - self.size[0]/2, self.center[1] + self.size[1]/2,
-              self.center[2] + self.size[2]/2)
-        data += '{P0} {P1} {P2} ( ( 1 0 0 ) ( 0 1 0 ) ) {tex} 0 0 0\n'.format(
-            P0=point_to_str(p0), P1=point_to_str(p1), P2=point_to_str(p2),
-            tex=self.texture["top"])
+        basecuboid = np.array([[-0.5, -0.5, -0.5], [-0.5, 0.5, -0.5],
+                               [-0.5, 0.5, 0.5], [-0.5, -0.5, 0.5],
+                               [0.5, -0.5, -0.5], [0.5, 0.5, -0.5],
+                               [0.5, 0.5, 0.5], [0.5, -0.5, 0.5]])
+        return self.center + self.size*basecuboid
 
-        # plane 1 - left face
-        p0 = (self.center[0] + self.size[0]/2, self.center[1] + self.size[1]/2,
-              self.center[2] + self.size[2]/2)
-        p1 = (self.center[0] - self.size[0]/2, self.center[1] + self.size[1]/2,
-              self.center[2] + self.size[2]/2)
-        p2 = (self.center[0] + self.size[0]/2, self.center[1] + self.size[1]/2,
-              self.center[2] - self.size[2]/2)
-        data += '{P0} {P1} {P2} ( ( 1 0 0 ) ( 0 1 0 ) ) {tex} 0 0 0\n'.format(P0=point_to_str(p0),
-                                                                              P1=point_to_str(p1),
-                                                                              P2=point_to_str(p2),
-                                                                              tex=self.texture["left"])
-
-        # plane 2 - back face
-        p0 = (self.center[0] + self.size[0]/2, self.center[1] + self.size[1]/2,
-              self.center[2] + self.size[2]/2)
-        p1 = (self.center[0] + self.size[0]/2, self.center[1] + self.size[1]/2,
-              self.center[2] - self.size[2]/2)
-        p2 = (self.center[0] + self.size[0]/2, self.center[1] - self.size[1]/2,
-              self.center[2] + self.size[2]/2)
-        data += '{P0} {P1} {P2} ( ( 1 0 0 ) ( 0 1 0 ) ) {tex} 0 0 0\n'.format(
-            P0=point_to_str(p0), P1=point_to_str(p1), P2=point_to_str(p2),
-            tex=self.texture["back"])
-
-        # plane 3 - bottom face
-        p0 = (self.center[0] - self.size[0]/2, self.center[1] - self.size[1]/2,
-              self.center[2] - self.size[2]/2)
-        p1 = (self.center[0] + self.size[0]/2, self.center[1] - self.size[1]/2,
-              self.center[2] - self.size[2]/2)
-        p2 = (self.center[0] - self.size[0]/2, self.center[1] + self.size[1]/2,
-              self.center[2] - self.size[2]/2)
-        data += '{P0} {P1} {P2} ( ( 1 0 0 ) ( 0 1 0 ) ) {tex} 0 0 0\n'.format(
-            P0=point_to_str(p0), P1=point_to_str(p1), P2=point_to_str(p2),
-            tex=self.texture["bottom"])
-
-        # plane 4 - right face
-        p0 = (self.center[0] - self.size[0]/2, self.center[1] - self.size[1]/2,
-              self.center[2] - self.size[2]/2)
-        p1 = (self.center[0] - self.size[0]/2, self.center[1] - self.size[1]/2,
-              self.center[2] + self.size[2]/2)
-        p2 = (self.center[0] + self.size[0]/2, self.center[1] - self.size[1]/2,
-              self.center[2] - self.size[2]/2)
-        data += '{P0} {P1} {P2} ( ( 1 0 0 ) ( 0 1 0 ) ) {tex} 0 0 0\n'.format(
-            P0=point_to_str(p0), P1=point_to_str(p1), P2=point_to_str(p2),
-            tex=self.texture["right"])
-
-        # plane 5 - front face
-        p0 = (self.center[0] - self.size[0]/2, self.center[1] - self.size[1]/2,
-              self.center[2] - self.size[2]/2)
-        p1 = (self.center[0] - self.size[0]/2, self.center[1] + self.size[1]/2,
-              self.center[2] - self.size[2]/2)
-        p2 = (self.center[0] - self.size[0]/2, self.center[1] - self.size[1]/2,
-              self.center[2] + self.size[2]/2)
-        data += '{P0} {P1} {P2} ( ( 1 0 0 ) ( 0 1 0 ) ) {tex} 0 0 0\n'.format(
-            P0=point_to_str(p0), P1=point_to_str(p1), P2=point_to_str(p2),
-            tex=self.texture["front"])
-
-        data += '}\n}\n'
-        return data
+    @property
+    def faces(self):
+        """
+        \brief Return the faces described by 3 verticies and the texture
+        order: front, back, right, left, bottom, top
+        """
+        verts = self.verticies
+        return [[verts[0], verts[1], verts[3], self.texture["front"]],
+                [verts[5], verts[4], verts[6], self.texture["back"]],
+                [verts[4], verts[0], verts[7], self.texture["right"]],
+                [verts[1], verts[5], verts[2], self.texture["left"]],
+                [verts[4], verts[5], verts[0], self.texture["bottom"]],
+                [verts[3], verts[2], verts[7], self.texture["top"]]]

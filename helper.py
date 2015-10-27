@@ -17,6 +17,10 @@
 from contextlib import contextmanager
 
 
+brushdef = '// brush\n{{\nbrushDef\n{{\n{data}}}\n}}\n'
+faceplane = '{P0} {P1} {P2} ( ( 1 0 0 ) ( 0 1 0 ) ) {tex} 0 0 0\n'
+
+
 @contextmanager
 def worldspawn(f):
     f.write('//entity 0\n{\n"classname" "worldspawn"\n')
