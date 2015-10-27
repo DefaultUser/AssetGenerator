@@ -36,8 +36,24 @@ class BaseObject(object):
 
     def __init__(self, center, size):
         super().__init__()
-        self.center = np.array(center, dtype=np.float)
-        self.size = np.array(size, dtype=np.float)
+        self.center = center
+        self.size = size
+
+    @property
+    def center(self):
+        return self._center
+
+    @center.setter
+    def center(self, value):
+        self._center = np.array(value, dtype=np.float)
+
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size = np.array(value, dtype=np.float)
 
     def _str__(self):
         raise NotImplementedError("This is an abstract class")
