@@ -20,9 +20,8 @@ import baseclasses
 import helper
 
 
-class ArrayModifier(baseclasses.BaseAsset):
-    def __init__(self, obj, count, offset, relative=False,
-                 group="ArrayModifier"):
+class ArrayModifier(baseclasses.BaseObject):
+    def __init__(self, obj, count, offset, relative=False):
         """
         \brief Copy an object multiple times and place them with
         a certain offset
@@ -31,12 +30,31 @@ class ArrayModifier(baseclasses.BaseAsset):
         \param offset Offset between the copies
         \param relative use relaitve or absolute offset
         """
-        super().__init__()
         self.obj = obj
         self.count = count
         self.offset = np.array(offset, dtype=np.float)
         self.relative = relative
-        self.group = group
+        super().__init__(self.center, self.size)
+
+    @property
+    def isGroupable(self):
+        return self.obj.isGroupable
+
+    @property
+    def center(self):
+        return (self[0].center + self[self.count-1].center)/2
+
+    @center.setter
+    def center(self, value):
+        self.obj.center = value + (self[0].center-self[self.count-1].center)/2
+
+    @property
+    def size(self):
+        return self[self.count-1].center - self[0].center + self.obj.size
+
+    @size.setter
+    def size(self, value):
+        print("Can't set size of arraymodifier directly - won't do anything")
 
     def __getitem__(self, key):
         if type(key) != int:
@@ -49,14 +67,8 @@ class ArrayModifier(baseclasses.BaseAsset):
         obj.center = self.obj.center + (key % self.count)*offset
         return obj
 
-    def write(self, f):
-        if self.obj.isGroupable:
-            context = helper.group
-            args = [f, self.group]
-        else:
-            context = helper.worldspawn
-            args = [f, ]
-
-        with context(*args):
-            for i in range(self.count):
-                f.write(str(self[i]))
+    def __str__(self):
+        data = ""
+        for i in range(self.count):
+            data += str(self[i])
+        return data
