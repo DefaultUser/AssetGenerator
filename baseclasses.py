@@ -55,7 +55,7 @@ class BaseObject(object):
     def size(self, value):
         self._size = np.array(value, dtype=np.float)
 
-    def _str__(self):
+    def __str__(self):
         raise NotImplementedError("This is an abstract class")
 
 
