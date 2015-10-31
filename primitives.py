@@ -16,12 +16,11 @@
 
 from collections import defaultdict
 import numpy as np
-from helper import point_to_str
 import baseclasses
 
 
 class Cuboid(baseclasses.Brush):
-    def __init__(self, center, size, texture=None):
+    def __init__(self, center, size, texture="common/caulk"):
         """
         \brief Generate a cuboid
         \param center center of the cuboid
@@ -30,8 +29,6 @@ class Cuboid(baseclasses.Brush):
         or as a dictionary with 'top','front' etc for individual faces
         """
         super().__init__(center, size)
-        if not texture:
-            texture = "common/caulk"
         if isinstance(texture, str):
             self.texture = defaultdict(lambda: texture)
         else:
@@ -63,3 +60,59 @@ class Cuboid(baseclasses.Brush):
                 [verts[1], verts[5], verts[2], self.texture["left"]],
                 [verts[4], verts[5], verts[0], self.texture["bottom"]],
                 [verts[3], verts[2], verts[7], self.texture["top"]]]
+
+
+class CylinderBrush(baseclasses.Brush):
+    def __init__(self, center, radius, height, numSides=16,
+                 texture="common/caulk"):
+        """
+        \brief Generate a Cylinder with numSides sides
+        """
+        size = np.array([2*radius, 2*radius, height], dtype=np.float)
+        super().__init__(center, size)
+        self.numSides = numSides
+        self.texture = texture
+
+    @property
+    def size(self):
+        return np.array([2*self.radius, 2*self.radius, self.height],
+                        dtype=np.float)
+
+    @size.setter
+    def size(self, value):
+        self.radius = value[0]/2
+        self.height = value[2]
+
+    @property
+    def faces(self):
+        faces = []
+        # sides
+        angle = 2*np.pi/self.numSides
+        for i in range(self.numSides):
+            v0 = self.center + np.array([self.radius*np.cos((i+1)*angle),
+                                         self.radius*np.sin((i+1)*angle),
+                                         -self.height/2], dtype=np.float)
+            v1 = self.center + np.array([self.radius*np.cos((i)*angle),
+                                         self.radius*np.sin((i)*angle),
+                                         -self.height/2], dtype=np.float)
+            v2 = self.center + np.array([self.radius*np.cos((i+1)*angle),
+                                         self.radius*np.sin((i+1)*angle),
+                                         +self.height/2], dtype=np.float)
+            faces.append([v0, v1, v2, self.texture])
+        # top
+        v0 = self.center + np.array([self.radius, -self.radius,
+                                     self.height/2], dtype=np.float)
+        v1 = self.center + np.array([-self.radius, -self.radius,
+                                     self.height/2], dtype=np.float)
+        v2 = self.center + np.array([self.radius, self.radius,
+                                     self.height/2], dtype=np.float)
+        faces.append([v0, v1, v2, self.texture])
+        # bottom
+        v0 = self.center + np.array([self.radius, self.radius,
+                                     -self.height/2], dtype=np.float)
+        v1 = self.center + np.array([-self.radius, self.radius,
+                                     -self.height/2], dtype=np.float)
+        v2 = self.center + np.array([self.radius, -self.radius,
+                                     -self.height/2], dtype=np.float)
+        faces.append([v0, v1, v2, self.texture])
+        return faces
