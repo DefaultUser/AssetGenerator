@@ -54,12 +54,18 @@ class Cuboid(baseclasses.Brush):
         order: front, back, right, left, bottom, top
         """
         verts = self.verticies
-        return [[verts[0], verts[1], verts[3], self.texture["front"]],
-                [verts[5], verts[4], verts[6], self.texture["back"]],
-                [verts[4], verts[0], verts[7], self.texture["right"]],
-                [verts[1], verts[5], verts[2], self.texture["left"]],
-                [verts[4], verts[5], verts[0], self.texture["bottom"]],
-                [verts[3], verts[2], verts[7], self.texture["top"]]]
+        return [baseclasses.Face(verts[0], verts[1], verts[3],
+                                 self.texture["front"]),
+                baseclasses.Face(verts[5], verts[4], verts[6],
+                                 self.texture["back"]),
+                baseclasses.Face(verts[4], verts[0], verts[7],
+                                 self.texture["right"]),
+                baseclasses.Face(verts[1], verts[5], verts[2],
+                                 self.texture["left"]),
+                baseclasses.Face(verts[4], verts[5], verts[0],
+                                 self.texture["bottom"]),
+                baseclasses.Face(verts[3], verts[2], verts[7],
+                                 self.texture["top"])]
 
 
 class CylinderBrush(baseclasses.Brush):
@@ -98,7 +104,7 @@ class CylinderBrush(baseclasses.Brush):
             v2 = self.center + np.array([self.radius*np.cos((i+1)*angle),
                                          self.radius*np.sin((i+1)*angle),
                                          +self.height/2], dtype=np.float)
-            faces.append([v0, v1, v2, self.texture])
+            faces.append(baseclasses.Face(v0, v1, v2, self.texture))
         # top
         v0 = self.center + np.array([self.radius, -self.radius,
                                      self.height/2], dtype=np.float)
@@ -106,7 +112,7 @@ class CylinderBrush(baseclasses.Brush):
                                      self.height/2], dtype=np.float)
         v2 = self.center + np.array([self.radius, self.radius,
                                      self.height/2], dtype=np.float)
-        faces.append([v0, v1, v2, self.texture])
+        faces.append(baseclasses.Face(v0, v1, v2, self.texture))
         # bottom
         v0 = self.center + np.array([self.radius, self.radius,
                                      -self.height/2], dtype=np.float)
@@ -114,5 +120,5 @@ class CylinderBrush(baseclasses.Brush):
                                      -self.height/2], dtype=np.float)
         v2 = self.center + np.array([self.radius, -self.radius,
                                      -self.height/2], dtype=np.float)
-        faces.append([v0, v1, v2, self.texture])
+        faces.append(baseclasses.Face(v0, v1, v2, self.texture))
         return faces
