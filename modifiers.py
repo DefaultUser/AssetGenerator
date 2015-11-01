@@ -56,6 +56,12 @@ class ArrayModifier(baseclasses.BaseObject):
     def size(self, value):
         print("Can't set size of arraymodifier directly - won't do anything")
 
+    def __iter__(self):
+        i = 0
+        while i < self.count:
+            yield self[i]
+            i += 1
+
     def __getitem__(self, key):
         if type(key) != int:
             raise IndexError("Only integers are supported")
@@ -69,6 +75,6 @@ class ArrayModifier(baseclasses.BaseObject):
 
     def __str__(self):
         data = ""
-        for i in range(self.count):
-            data += str(self[i])
+        for obj in self:
+            data += str(obj)
         return data
