@@ -1,3 +1,4 @@
 *.pyc
 *.map
 *.kdev4
+config.conf

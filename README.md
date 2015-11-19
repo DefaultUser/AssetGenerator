@@ -6,7 +6,8 @@ Simple Tools to help map developing. It produces ".map"-files that can be import
 Dependencies
 ------------
 python3<br/>
-numpy
+numpy<br/>
+PIL
 
 COPYRIGHT
 ---------

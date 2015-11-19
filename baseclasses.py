@@ -16,6 +16,7 @@
 
 import numpy as np
 import helper
+import shaders
 
 
 class BaseAsset(object):
@@ -72,8 +73,14 @@ class Face(object):
     def __str__(self):
         base = ('{P0} {P1} {P2} ( ( {rs[0][0]} {rs[0][1]} {off[0]} )'
                 ' ( {rs[1][0]} {rs[1][1]} {off[1]} ) ) {tex} 0 0 0\n')
-        # TODO: get texture size from texture
-        texsize = np.array([64, 64], dtype=np.float)
+
+        try:
+            texsize = np.array(shaders.get_texture_size(self.texture),
+                               dtype=np.float)
+        except (KeyError, ValueError):
+            print("WARNING: shader not found, using a size of (64, 64)")
+            texsize = np.array([64, 64], dtype=np.float)
+
         cos_angle = np.cos(np.deg2rad(self.angle))
         sin_angle = np.sin(np.deg2rad(self.angle))
         rot = np.array([[cos_angle, sin_angle], [-sin_angle, cos_angle]])
@@ -81,7 +88,7 @@ class Face(object):
         return base.format(P0=helper.point_to_str(self.verts[0]),
                            P1=helper.point_to_str(self.verts[1]),
                            P2=helper.point_to_str(self.verts[2]),
-                           rs=rotscale, off=self.offset/texsize,
+                           rs=rotscale, off=-self.offset/texsize,
                            tex=self.texture)
 
 
