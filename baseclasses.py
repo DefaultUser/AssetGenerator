@@ -32,11 +32,12 @@ class BaseAsset(object):
             self.write(f)
 
 
-class BaseObject(object):
-    isGroupable = False
+class BasePrimitive(object):
+    """
+    Abstract base class for all primitives (brushes and patches)
+    """
 
     def __init__(self, center, size):
-        super().__init__()
         self.center = center
         self.size = size
 
@@ -48,6 +49,9 @@ class BaseObject(object):
     def center(self, value):
         self._center = np.array(value, dtype=np.float)
 
+    def move(self, offset):
+        self.center += np.array(offset, dtype=np.float)
+
     @property
     def size(self):
         return self._size
@@ -56,15 +60,17 @@ class BaseObject(object):
     def size(self, value):
         self._size = np.array(value, dtype=np.float)
 
-    def __str__(self):
-        raise NotImplementedError("This is an abstract class")
+    def scale(self, factor):
+        self.size *= factor
 
 
 class Face(object):
     def __init__(self, v0, v1, v2, texture="common/caulk", angle=0,
                  x_off=0, y_off=0, x_scale=1, y_scale=1):
         super().__init__()
-        self.verts = [v0, v1, v2]
+        self.verts = [np.array(v0, dtype=np.float),
+                      np.array(v1, dtype=np.float),
+                      np.array(v2, dtype=np.float)]
         self.texture = texture
         self.angle = angle
         self.offset = np.array([x_off, y_off], dtype=np.float)
@@ -78,7 +84,8 @@ class Face(object):
             texsize = np.array(shaders.get_texture_size(self.texture),
                                dtype=np.float)
         except (KeyError, ValueError):
-            print("WARNING: shader not found, using a size of (64, 64)")
+            print("WARNING: size of shader {} not found, "
+                  "using a size of (64, 64)".format(self.texture))
             texsize = np.array([64, 64], dtype=np.float)
 
         cos_angle = np.cos(np.deg2rad(self.angle))
@@ -92,12 +99,38 @@ class Face(object):
                            tex=self.texture)
 
 
-class Brush(BaseObject):
+class Brush(object):
     isGroupable = True
+
+    def __init__(self, faces):
+        self.faces = faces
+
+    @property
+    def center(self):
+        # TODO: implement this function
+        raise NotImplementedError("Will come in the future")
 
     @property
     def faces(self):
-        raise NotImplementedError("This is an abstract class")
+        return self._faces
+
+    @faces.setter
+    def faces(self, faces):
+        if len(faces) < 4:
+            raise AttributeError("Need at least 4 faces to form a brush")
+        for face in faces:
+            if not isinstance(face, Face):
+                raise TypeError("List of 'Face' objects expected")
+        self._faces = faces
+
+    def move(self, offset):
+        for face in self.faces:
+            for vert in face.verts:
+                vert += np.array(offset, dtype=np.float)
+
+    def scale(self, factor):
+        # TODO: implement this function
+        raise NotImplementedError("Will come in the future")
 
     def __str__(self):
         data = ''

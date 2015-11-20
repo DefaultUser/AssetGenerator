@@ -20,7 +20,7 @@ import baseclasses
 import helper
 
 
-class ArrayModifier(baseclasses.BaseObject):
+class ArrayModifier(object):
     def __init__(self, obj, count, offset, relative=False):
         """
         \brief Copy an object multiple times and place them with
@@ -34,7 +34,6 @@ class ArrayModifier(baseclasses.BaseObject):
         self.count = count
         self.offset = np.array(offset, dtype=np.float)
         self.relative = relative
-        super().__init__(self.center, self.size)
 
     @property
     def isGroupable(self):
@@ -44,17 +43,15 @@ class ArrayModifier(baseclasses.BaseObject):
     def center(self):
         return (self[0].center + self[self.count-1].center)/2
 
-    @center.setter
-    def center(self, value):
-        self.obj.center = value + (self[0].center-self[self.count-1].center)/2
+    def move(self, offset):
+        self.obj.move(offset)
 
     @property
     def size(self):
         return self[self.count-1].center - self[0].center + self.obj.size
 
-    @size.setter
-    def size(self, value):
-        print("Can't set size of arraymodifier directly - won't do anything")
+    def __len__(self):
+        return self.count
 
     def __iter__(self):
         i = 0
@@ -70,7 +67,7 @@ class ArrayModifier(baseclasses.BaseObject):
             offset = self.offset*obj.size
         else:
             offset = self.offset
-        obj.center = self.obj.center + (key % self.count)*offset
+        obj.move((key % self.count)*offset)
         return obj
 
     def __str__(self):

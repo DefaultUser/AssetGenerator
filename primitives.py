@@ -19,7 +19,7 @@ import numpy as np
 import baseclasses
 
 
-class Cuboid(baseclasses.Brush):
+class Cuboid(baseclasses.BasePrimitive, baseclasses.Brush):
     def __init__(self, center, size, texture="common/caulk"):
         """
         \brief Generate a cuboid
@@ -68,7 +68,7 @@ class Cuboid(baseclasses.Brush):
                                  self.texture["top"])]
 
 
-class CylinderBrush(baseclasses.Brush):
+class CylinderBrush(baseclasses.BasePrimitive, baseclasses.Brush):
     def __init__(self, center, radius, height, numSides=16,
                  texture="common/caulk"):
         """
