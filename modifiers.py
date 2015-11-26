@@ -20,7 +20,7 @@ import baseclasses
 import helper
 
 
-class ArrayModifier(object):
+class Array(object):
     def __init__(self, obj, count, offset, relative=False):
         """
         \brief Copy an object multiple times and place them with
@@ -32,7 +32,7 @@ class ArrayModifier(object):
         """
         self.obj = obj
         self.count = count
-        self.offset = np.array(offset, dtype=np.float)
+        self.offset = offset
         self.relative = relative
 
     @property
@@ -42,6 +42,14 @@ class ArrayModifier(object):
     @property
     def center(self):
         return (self[0].center + self[self.count-1].center)/2
+
+    @property
+    def offset(self):
+        return self._offset
+
+    @offset.setter
+    def offset(self, value):
+        self._offset = np.array(value, dtype=np.float)
 
     def move(self, offset):
         self.obj.move(offset)
@@ -73,5 +81,73 @@ class ArrayModifier(object):
     def __str__(self):
         data = ""
         for obj in self:
+            data += str(obj)
+        return data
+
+
+class RandomScatter(object):
+    def __init__(self, obj, count, max_offset, scale_variation=0):
+        """
+        \brief Copy an object multiple times and place them with
+        a random offset and scale
+        \param obj Object that should be copied
+        \param count Number of copies
+        \param max_offset Maximum offset of the scattered objects
+        \param scale_variation Variation of the objects scale
+        0 means no change in scale
+        """
+        self.obj = obj
+        self.count = count
+        self.max_offset = max_offset
+        self.scale_variation = scale_variation
+
+    @property
+    def isGroupable(self):
+        return self.obj.isGroupable
+
+    @property
+    def center(self):
+        return self.obj.center
+
+    @property
+    def max_offset(self):
+        return self._max_offset
+
+    @max_offset.setter
+    def max_offset(self, value):
+        self._max_offset = np.array(value, dtype=np.float)
+
+    def move(self, offset):
+        self.obj.move(offset)
+
+    @property
+    def size(self):
+        return self.max_offset + self.obj.size
+
+    @property
+    def scale_variation(self):
+        return self._scale_variation
+
+    @scale_variation.setter
+    def scale_variation(self, value):
+        self._scale_variation = np.array(value, dtype=np.float)
+
+    def randomize_objects(self):
+        """
+        Do the actual randomizing
+        """
+        objs = []
+        for i in range(self.count):
+            obj = copy.deepcopy(self.obj)
+            offsets = 2*(np.random.rand(3)-0.5)*self.max_offset
+            obj.move(offsets)
+            scales = 2*(np.random.rand()-0.5)*self.scale_variation + 1
+            obj.scale(scales)
+            objs.append(obj)
+        return objs
+
+    def __str__(self):
+        data = ""
+        for obj in self.randomize_objects():
             data += str(obj)
         return data
