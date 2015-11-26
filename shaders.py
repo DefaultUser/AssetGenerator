@@ -31,6 +31,9 @@ def get_texture_size(shadername):
 @helper.memoize
 def get_texture_size_mapping_support(path):
     with zipfile.ZipFile(helper.find_mapping_support(), "r") as zf:
+        # if no suffix is specified, use jpg
+        if not "." in path.split("/")[-1]:
+            path = path + ".jpg"
         # mapping support has jpg images, but tga images are defined
         # in the official shaders in Xonotic
         if path not in zf.namelist():
