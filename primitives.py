@@ -69,15 +69,25 @@ class Cuboid(baseclasses.BasePrimitive, baseclasses.Brush):
 
 
 class CylinderBrush(baseclasses.BasePrimitive, baseclasses.Brush):
-    def __init__(self, center, radius, height, numSides=16,
+    def __init__(self, center, radius, height, radius2=0, numSides=16,
                  texture="common/caulk"):
         """
         \brief Generate a Cylinder with numSides sides
+        \param center center of the cylinder
+        \param radius radius of the base area
+        \param height height of the cylinder
+        \param radius2 if != 0 generate a cylinder with eliptical base area
+        \param numSides number of sides of the cylinder
+        \param texture texture of the cylinder as string (applied to all faces)
+        or as a dictionary('top', 'bottom' and 'sides') for individual faces
         """
-        size = np.array([2*radius, 2*radius, height], dtype=np.float)
+        size = np.array([2*radius, 2*radius2, height], dtype=np.float)
         super().__init__(center, size)
         self.numSides = numSides
-        self.texture = texture
+        if isinstance(texture, str):
+            self.texture = defaultdict(lambda: texture)
+        else:
+            self.texture = defaultdict(lambda: "common/caulk", texture)
 
     @property
     def size(self):
@@ -87,24 +97,26 @@ class CylinderBrush(baseclasses.BasePrimitive, baseclasses.Brush):
     @size.setter
     def size(self, value):
         self.radius = value[0]/2
+        self.radius2 = value[1]/2
         self.height = value[2]
 
     @property
     def faces(self):
         faces = []
+        rad2 = self.radius2 if self.radius2 else self.radius
         # sides
         angle = 2*np.pi/self.numSides
         for i in range(self.numSides):
             v0 = self.center + np.array([self.radius*np.cos((i+1)*angle),
-                                         self.radius*np.sin((i+1)*angle),
+                                         rad2*np.sin((i+1)*angle),
                                          -self.height/2], dtype=np.float)
             v1 = self.center + np.array([self.radius*np.cos((i)*angle),
-                                         self.radius*np.sin((i)*angle),
+                                         rad2*np.sin((i)*angle),
                                          -self.height/2], dtype=np.float)
             v2 = self.center + np.array([self.radius*np.cos((i+1)*angle),
-                                         self.radius*np.sin((i+1)*angle),
+                                         rad2*np.sin((i+1)*angle),
                                          +self.height/2], dtype=np.float)
-            faces.append(baseclasses.Face(v0, v1, v2, self.texture))
+            faces.append(baseclasses.Face(v0, v1, v2, self.texture["sides"]))
         # top
         v0 = self.center + np.array([self.radius, -self.radius,
                                      self.height/2], dtype=np.float)
@@ -112,7 +124,7 @@ class CylinderBrush(baseclasses.BasePrimitive, baseclasses.Brush):
                                      self.height/2], dtype=np.float)
         v2 = self.center + np.array([self.radius, self.radius,
                                      self.height/2], dtype=np.float)
-        faces.append(baseclasses.Face(v0, v1, v2, self.texture))
+        faces.append(baseclasses.Face(v0, v1, v2, self.texture["top"]))
         # bottom
         v0 = self.center + np.array([self.radius, self.radius,
                                      -self.height/2], dtype=np.float)
@@ -120,5 +132,5 @@ class CylinderBrush(baseclasses.BasePrimitive, baseclasses.Brush):
                                      -self.height/2], dtype=np.float)
         v2 = self.center + np.array([self.radius, -self.radius,
                                      -self.height/2], dtype=np.float)
-        faces.append(baseclasses.Face(v0, v1, v2, self.texture))
+        faces.append(baseclasses.Face(v0, v1, v2, self.texture["bottom"]))
         return faces
