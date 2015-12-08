@@ -133,8 +133,7 @@ class Brush(object):
 
     def move(self, offset):
         for face in self.faces:
-            for vert in face.verts:
-                vert += np.array(offset, dtype=np.float)
+            face.move(offset)
 
     def scale(self, factor):
         # TODO: implement this function
