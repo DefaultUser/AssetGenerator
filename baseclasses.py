@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+import copy
 import helper
 import shaders
 
@@ -76,6 +77,13 @@ class Face(object):
         self.offset = np.array([x_off, y_off], dtype=np.float)
         self.scale = np.array([x_scale, y_scale], dtype=np.float)
 
+    def move(self, offset):
+        """
+        \brief move the face by a given offset (scalar or list of length 3)
+        """
+        for vert in self.verts:
+            vert += np.array(offset, dtype=np.float)
+
     def __str__(self):
         base = ('{P0} {P1} {P2} ( ( {rs[0][0]} {rs[0][1]} {off[0]} )'
                 ' ( {rs[1][0]} {rs[1][1]} {off[1]} ) ) {tex} 0 0 0\n')
@@ -131,6 +139,26 @@ class Brush(object):
     def scale(self, factor):
         # TODO: implement this function
         raise NotImplementedError("Will come in the future")
+
+    def cutted(self, *newfaces):
+        """
+        \brief create another brush by cutting this brush
+        with the supplied faces
+        """
+        faces = copy.deepcopy(self.faces)
+        for newface in newfaces:
+            if type(newface) == Face:
+                faces.append(newface)
+            else:
+                raise TypeError("Needs Face objects")
+        return Brush(faces)
+
+    def copy_brush(self):
+        """
+        \brief return an independent copy of the brush
+        """
+        faces = copy.deepcopy(self.faces)
+        return Brush(faces)
 
     def __str__(self):
         data = ''
