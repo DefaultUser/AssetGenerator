@@ -75,6 +75,13 @@ def xon_dir():
 
 
 @memoize
+def is_git_build():
+    if os.path.isdir(os.path.join(xon_dir(), "data", "xonotic-maps.pk3dir")):
+        return True
+    return False
+
+
+@memoize
 def find_maps_pk3():
     """
     Find the pk3 containing the map data
@@ -85,6 +92,10 @@ def find_maps_pk3():
     for file in os.listdir(datadir):
         if pat.search(file):
             return os.path.join(datadir, file)
+
+
+def find_maps_pk3dir():
+    return os.path.join(xon_dir(), "data", "xonotic-maps.pk3dir")
 
 
 @memoize

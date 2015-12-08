@@ -25,22 +25,35 @@ def get_texture_size(shadername):
     shader = find_shader(shadername)
     texpath = shader.texture_path
     # TODO: support custom textures
+    if helper.is_git_build():
+        return get_texture_size_git_build(texpath)
     return get_texture_size_mapping_support(texpath)
+
+
+@helper.memoize
+def get_texture_size_git_build(path):
+    # if no suffix is specified, use tga
+    if not "." in path.split("/")[-1]:
+        path = path + ".tga"
+    path = os.path.join(helper.find_maps_pk3dir(), path)
+    with open(path, "r") as src:
+        img = Image.open(src)
+    return img.size
 
 
 @helper.memoize
 def get_texture_size_mapping_support(path):
     with zipfile.ZipFile(helper.find_mapping_support(), "r") as zf:
-        # if no suffix is specified, use jpg
+        # if no suffix is specified, use tga
         if not "." in path.split("/")[-1]:
-            path = path + ".jpg"
+            path = path + ".tga"
         # mapping support has jpg images, but tga images are defined
         # in the official shaders in Xonotic
         if path not in zf.namelist():
             path = path.replace(".tga", ".jpg")
         src = io.BytesIO(zf.read(path))
-        img = Image.open(src)
-        return img.size
+    img = Image.open(src)
+    return img.size
 
 
 def find_shader(name):
@@ -123,9 +136,14 @@ def parse_shader_file(filename):
         (?P<STRING>   [^\s]+        )
         ''', re.VERBOSE | re.MULTILINE)
 
-    # TODO: support custom shader files and git builds (.pk3dir)
-    with zipfile.ZipFile(helper.find_maps_pk3(), "r") as zf:
-        data = zf.read("scripts/" + filename).decode()
+    # TODO: support custom shader files
+    if helper.is_git_build():
+        path = os.path.join(helper.find_maps_pk3dir(), "scripts", filename)
+        with open(path, "r") as sf:
+            data = sf.read()
+    else:
+        with zipfile.ZipFile(helper.find_maps_pk3(), "r") as zf:
+            data = zf.read("scripts/" + filename).decode()
     scanner = tokens.scanner(data)
     shaders = []
     match = scanner.match()
