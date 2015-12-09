@@ -84,6 +84,20 @@ class Face(object):
         for vert in self.verts:
             vert += np.array(offset, dtype=np.float)
 
+    def flip(self):
+        """
+        \brief flip the direction the face normal is pointing
+        """
+        self.verts[1], self.verts[2] = self.verts[2], self.verts[1]
+
+    def flipped(self):
+        """
+        \brief return a copy of the face with flipped normal
+        """
+        newface = copy.deepcopy(self)
+        newface.flip()
+        return newface
+
     def __str__(self):
         base = ('{P0} {P1} {P2} ( ( {rs[0][0]} {rs[0][1]} {off[0]} )'
                 ' ( {rs[1][0]} {rs[1][1]} {off[1]} ) ) {tex} 0 0 0\n')
