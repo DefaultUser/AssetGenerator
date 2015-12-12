@@ -153,12 +153,14 @@ class Brush(object):
         # TODO: implement this function
         raise NotImplementedError("Will come in the future")
 
-    def cutted(self, *newfaces):
+    def cutted(self, *newfaces, unique_faces=True):
         """
         \brief create another brush by cutting this brush
         with the supplied faces
         """
         faces = copy.deepcopy(self.faces)
+        if unique_faces:
+            newfaces = copy.deepcopy(newfaces)
         for newface in newfaces:
             if type(newface) == Face:
                 faces.append(newface)
