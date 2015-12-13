@@ -68,7 +68,94 @@ class Cuboid(baseclasses.BasePrimitive, baseclasses.Brush):
                                  self.texture["top"])]
 
 
-class CylinderBrush(baseclasses.BasePrimitive, baseclasses.Brush):
+class TruncatedConeBrush(baseclasses.BasePrimitive, baseclasses.Brush):
+    def __init__(self, center, radius, height, radius2=0, truncation_ratio=0,
+                 numSides=16, texture="common/caulk"):
+        """
+        \brief Generate a (truncated) cone with numSides sides
+        \param center center of the cone
+        \param radius radius of the base area
+        \param height height of the cone
+        \param radius2 if != 0 generate a cone with eliptical base area
+        \param truncation_ratio ratio of the radii of top to bottom face
+        0 means no truncation at all
+        \param numSides number of sides of the cone
+        \param texture texture of the cone as string (applied to all faces)
+        or as a dictionary('top', 'bottom' and 'sides') for individual faces
+        """
+        size = np.array([2*radius, 2*radius2, height], dtype=np.float)
+        super().__init__(center, size)
+        self.truncation_ratio = truncation_ratio
+        self.numSides = numSides
+        if isinstance(texture, str):
+            self.texture = defaultdict(lambda: texture)
+        else:
+            self.texture = defaultdict(lambda: "common/caulk", texture)
+
+    @property
+    def size(self):
+        rad2 = self.radius2 if self.radius2 else self.radius
+        return np.array([2*self.radius, 2*rad2, self.height],
+                        dtype=np.float)
+
+    @size.setter
+    def size(self, value):
+        self.radius = value[0]/2
+        self.radius2 = value[1]/2
+        self.height = value[2]
+
+    @property
+    def truncation_ratio(self):
+        return self._truncation_ratio
+
+    @truncation_ratio.setter
+    def truncation_ratio(self, value):
+        if value > 1 or value < 0:
+            raise ValueError("Truncation ratio must be between 0 and 1")
+        self._truncation_ratio = value
+
+    @property
+    def faces(self):
+        faces = []
+        rad2 = self.radius2 if self.radius2 else self.radius
+        ratio = self.truncation_ratio
+
+        # sides
+        angle = 2*np.pi/self.numSides
+        for i in range(self.numSides):
+            v0 = self.center + np.array([self.radius*np.cos((i+1)*angle),
+                                         rad2*np.sin((i+1)*angle),
+                                         -self.height/2], dtype=np.float)
+            v1 = self.center + np.array([self.radius*np.cos((i)*angle),
+                                         rad2*np.sin((i)*angle),
+                                         -self.height/2], dtype=np.float)
+            v2 = self.center + np.array([ratio*self.radius*np.cos((i+1)*angle),
+                                         ratio*rad2*np.sin((i+1)*angle),
+                                         +self.height/2], dtype=np.float)
+            faces.append(baseclasses.Face(v0, v1, v2, self.texture["sides"]))
+
+        # top - only if the truncation_ratio is not 0
+        if ratio:
+            v0 = self.center + np.array([self.radius, -self.radius,
+                                        self.height/2], dtype=np.float)
+            v1 = self.center + np.array([-self.radius, -self.radius,
+                                        self.height/2], dtype=np.float)
+            v2 = self.center + np.array([self.radius, self.radius,
+                                        self.height/2], dtype=np.float)
+            faces.append(baseclasses.Face(v0, v1, v2, self.texture["top"]))
+
+        # bottom
+        v0 = self.center + np.array([self.radius, self.radius,
+                                     -self.height/2], dtype=np.float)
+        v1 = self.center + np.array([-self.radius, self.radius,
+                                     -self.height/2], dtype=np.float)
+        v2 = self.center + np.array([self.radius, -self.radius,
+                                     -self.height/2], dtype=np.float)
+        faces.append(baseclasses.Face(v0, v1, v2, self.texture["bottom"]))
+        return faces
+
+
+class CylinderBrush(TruncatedConeBrush):
     def __init__(self, center, radius, height, radius2=0, numSides=16,
                  texture="common/caulk"):
         """
@@ -81,59 +168,15 @@ class CylinderBrush(baseclasses.BasePrimitive, baseclasses.Brush):
         \param texture texture of the cylinder as string (applied to all faces)
         or as a dictionary('top', 'bottom' and 'sides') for individual faces
         """
-        size = np.array([2*radius, 2*radius2, height], dtype=np.float)
-        super().__init__(center, size)
-        self.numSides = numSides
-        if isinstance(texture, str):
-            self.texture = defaultdict(lambda: texture)
-        else:
-            self.texture = defaultdict(lambda: "common/caulk", texture)
+        super().__init__(center, radius, height, radius2, 1, numSides, texture)
 
     @property
-    def size(self):
-        return np.array([2*self.radius, 2*self.radius, self.height],
-                        dtype=np.float)
+    def truncation_ratio(self):
+        return 1
 
-    @size.setter
-    def size(self, value):
-        self.radius = value[0]/2
-        self.radius2 = value[1]/2
-        self.height = value[2]
-
-    @property
-    def faces(self):
-        faces = []
-        rad2 = self.radius2 if self.radius2 else self.radius
-        # sides
-        angle = 2*np.pi/self.numSides
-        for i in range(self.numSides):
-            v0 = self.center + np.array([self.radius*np.cos((i+1)*angle),
-                                         rad2*np.sin((i+1)*angle),
-                                         -self.height/2], dtype=np.float)
-            v1 = self.center + np.array([self.radius*np.cos((i)*angle),
-                                         rad2*np.sin((i)*angle),
-                                         -self.height/2], dtype=np.float)
-            v2 = self.center + np.array([self.radius*np.cos((i+1)*angle),
-                                         rad2*np.sin((i+1)*angle),
-                                         +self.height/2], dtype=np.float)
-            faces.append(baseclasses.Face(v0, v1, v2, self.texture["sides"]))
-        # top
-        v0 = self.center + np.array([self.radius, -self.radius,
-                                     self.height/2], dtype=np.float)
-        v1 = self.center + np.array([-self.radius, -self.radius,
-                                     self.height/2], dtype=np.float)
-        v2 = self.center + np.array([self.radius, self.radius,
-                                     self.height/2], dtype=np.float)
-        faces.append(baseclasses.Face(v0, v1, v2, self.texture["top"]))
-        # bottom
-        v0 = self.center + np.array([self.radius, self.radius,
-                                     -self.height/2], dtype=np.float)
-        v1 = self.center + np.array([-self.radius, self.radius,
-                                     -self.height/2], dtype=np.float)
-        v2 = self.center + np.array([self.radius, -self.radius,
-                                     -self.height/2], dtype=np.float)
-        faces.append(baseclasses.Face(v0, v1, v2, self.texture["bottom"]))
-        return faces
+    @truncation_ratio.setter
+    def truncation_ratio(self, value):
+        pass
 
 
 class EllipsoidBrush(baseclasses.BasePrimitive, baseclasses.Brush):
