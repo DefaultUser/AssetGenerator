@@ -134,3 +134,64 @@ class CylinderBrush(baseclasses.BasePrimitive, baseclasses.Brush):
                                      -self.height/2], dtype=np.float)
         faces.append(baseclasses.Face(v0, v1, v2, self.texture["bottom"]))
         return faces
+
+
+class EllipsoidBrush(baseclasses.BasePrimitive, baseclasses.Brush):
+    def __init__(self, center, size, numSegments=16, numRings=16,
+                 texture="common/caulk"):
+        super().__init__(center, size)
+        self.numSegments = numSegments
+        self.numRings = numRings
+        self.texture = texture
+
+    @property
+    def faces(self):
+        faces = []
+        segmentAngle = 2*np.pi/self.numSegments
+        ringAngle = np.pi/self.numRings
+
+        for i_seg in range(self.numSegments):
+            # faces of the lowest ring have to be computed differently
+            mu_i = -np.pi/2
+            nu_i = i_seg*segmentAngle
+            mu_ip1 = ringAngle - np.pi/2
+            nu_ip1 = (i_seg+1)*segmentAngle
+
+            v0_normalized = np.array([np.cos(mu_ip1)*np.cos(nu_ip1),
+                                      np.cos(mu_ip1)*np.sin(nu_ip1),
+                                      np.sin(mu_ip1)], dtype=np.float)
+            v1_normalized = np.array([np.cos(mu_i)*np.cos(nu_ip1),
+                                      np.cos(mu_i)*np.sin(nu_ip1),
+                                      np.sin(mu_i)], dtype=np.float)
+            v2_normalized = np.array([np.cos(mu_ip1)*np.cos(nu_i),
+                                      np.cos(mu_ip1)*np.sin(nu_i),
+                                      np.sin(mu_ip1)], dtype=np.float)
+
+            v0 = v0_normalized*self.size/2 + self.center
+            v1 = v1_normalized*self.size/2 + self.center
+            v2 = v2_normalized*self.size/2 + self.center
+            faces.append(baseclasses.Face(v0, v1, v2, self.texture))
+
+            # rest of the rings
+            for i_ring in range(1, self.numRings):
+                mu_i = i_ring*ringAngle - np.pi/2
+                nu_i = i_seg*segmentAngle
+                mu_ip1 = (i_ring+1)*ringAngle - np.pi/2
+                nu_ip1 = (i_seg+1)*segmentAngle
+
+                v0_normalized = np.array([np.cos(mu_i)*np.cos(nu_ip1),
+                                          np.cos(mu_i)*np.sin(nu_ip1),
+                                          np.sin(mu_i)], dtype=np.float)
+                v1_normalized = np.array([np.cos(mu_i)*np.cos(nu_i),
+                                          np.cos(mu_i)*np.sin(nu_i),
+                                          np.sin(mu_i)], dtype=np.float)
+                v2_normalized = np.array([np.cos(mu_ip1)*np.cos(nu_ip1),
+                                          np.cos(mu_ip1)*np.sin(nu_ip1),
+                                          np.sin(mu_ip1)], dtype=np.float)
+
+                v0 = v0_normalized*self.size/2 + self.center
+                v1 = v1_normalized*self.size/2 + self.center
+                v2 = v2_normalized*self.size/2 + self.center
+                faces.append(baseclasses.Face(v0, v1, v2, self.texture))
+
+        return faces
