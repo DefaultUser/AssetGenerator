@@ -77,12 +77,30 @@ class Face(object):
         self.offset = np.array([x_off, y_off], dtype=np.float)
         self.scale = np.array([x_scale, y_scale], dtype=np.float)
 
+    @property
+    def normal(self):
+        return np.cross(self.verts[1]-self.verts[0], self.verts[2]-self.verts[0])
+
     def move(self, offset):
         """
         \brief move the face by a given offset (scalar or list of length 3)
         """
         for vert in self.verts:
             vert += np.array(offset, dtype=np.float)
+
+    def is_point_in_front(self, point):
+        """
+        \brief check if a point is in front of the face
+        """
+        # get a vector from some point on the face to the given point
+        point = np.array(point, dtype=np.float)
+        vec = point - self.verts[0]
+        # check the scalar product of this vector and the normal vector
+        scalprod = np.dot(vec, self.normal)
+        # normal points into the brushes!!
+        if scalprod < 0:
+            return True
+        return False
 
     def flip(self):
         """
@@ -174,6 +192,12 @@ class Brush(object):
         """
         faces = copy.deepcopy(self.faces)
         return Brush(faces)
+
+    def is_point_outside(self, point):
+        """
+        \brief check if a point is outside of the brush
+        """
+        return any([face.is_point_in_front(point) for face in self.faces])
 
     def __str__(self):
         data = ''
