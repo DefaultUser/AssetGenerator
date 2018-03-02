@@ -7,7 +7,13 @@ Dependencies
 ------------
 python3<br/>
 numpy<br/>
-PIL
+pillow
+
+
+Usage
+-----
+See "examples/"
+
 
 COPYRIGHT
 ---------
