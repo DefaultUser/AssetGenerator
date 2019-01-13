@@ -1,5 +1,5 @@
 # Asset Generator
-# Copyright (C) <2015>  <Sebastian Schmidt>
+# Copyright (C) <2015-2019>  <Sebastian Schmidt>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@ import re
 import configparser
 from contextlib import contextmanager
 import functools
+import numpy as np
+from math import cos, sin
 
 
 brushdef = '// brush\n{{\nbrushDef\n{{\n{data}}}\n}}\n'
@@ -116,3 +118,33 @@ def find_mapping_support():
     for file in os.listdir(configpath):
         if pat.search(file):
             return os.path.join(configpath, file)
+
+def RotationMatrixX(theta):
+    """
+    Rotation Matrix around X axis
+    """
+    c = cos(theta)
+    s = sin(theta)
+    return np.array([[1,  0, 0],
+                     [0,  c, s],
+                     [0, -s, c]])
+
+def RotationMatrixY(theta):
+    """
+    Rotation Matrix around Y axis
+    """
+    c = cos(theta)
+    s = sin(theta)
+    return np.array([[ c, 0, s],
+                     [ 0, 1, 0],
+                     [-s, 0, c]])
+
+def RotationMatrixZ(theta):
+    """
+    Rotation Matrix around Z axis
+    """
+    c = cos(theta)
+    s = sin(theta)
+    return np.array([[ c, s, 0],
+                     [-s, c, 0],
+                     [ 0, 0, 1]])

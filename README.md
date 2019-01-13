@@ -5,7 +5,7 @@ Simple Tools to help map developing. It produces ".map"-files that can be import
 
 Dependencies
 ------------
-python3<br/>
+python3.5<br/>
 numpy<br/>
 pillow
 

@@ -1,5 +1,5 @@
 # Asset Generator
-# Copyright (C) <2015>  <Sebastian Schmidt>
+# Copyright (C) <2015-2019>  <Sebastian Schmidt>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,6 +53,9 @@ class BasePrimitive(object):
     def move(self, offset):
         self.center += np.array(offset, dtype=np.float)
 
+    def rotate_point(self, center, rotation_matrix):
+        raise NotImplementedError("Primitive rotation not implemented yet")
+
     @property
     def size(self):
         return self._size
@@ -76,6 +79,9 @@ class Face(object):
         self.angle = angle
         self.offset = np.array([x_off, y_off], dtype=np.float)
         self.scale = np.array([x_scale, y_scale], dtype=np.float)
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     @property
     def normal(self):
@@ -112,8 +118,24 @@ class Face(object):
         """
         \brief return a copy of the face with flipped normal
         """
-        newface = copy.deepcopy(self)
+        newface = self.copy()
         newface.flip()
+        return newface
+
+    def rotate_point(self, center, rotation_matrix):
+        """
+        \brief rotate the face around the given center point
+        """
+        self.verts[0] = (self.verts[0] - center)@rotation_matrix + center
+        self.verts[1] = (self.verts[1] - center)@rotation_matrix + center
+        self.verts[2] = (self.verts[2] - center)@rotation_matrix + center
+
+    def rotated_point(self, center, rotation_matrix):
+        """
+        \brief return a copy of the face rotated around the given center point
+        """
+        newface = self.copy()
+        newface.rotate_point(center, rotation_matrix)
         return newface
 
     def __str__(self):
@@ -166,6 +188,10 @@ class Brush(object):
     def move(self, offset):
         for face in self.faces:
             face.move(offset)
+
+    def rotate_point(self, center, rotation_matrix):
+        for face in self.faces:
+            face.rotate_point(center, rotation_matrix)
 
     def scale(self, factor):
         # TODO: implement this function
